@@ -1,0 +1,11 @@
+{
+  "name": "semaforos-pwa",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test --test-isolation=none",
+    "check": "node --check app.js && node --check db.js && node --check traffic-cycle.js && node --check sw.js"
+  }
+}

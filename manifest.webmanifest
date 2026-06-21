@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "Semáforos",
+  "short_name": "Semáforos",
+  "description": "Crea semáforos independientes sobre el mapa y configura sus ciclos.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#101416",
+  "theme_color": "#101416",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
