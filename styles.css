@@ -20,12 +20,13 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 body { background: #101416; color: var(--ink); -webkit-tap-highlight-color: transparent; }
 
 button, input { font: inherit; }
-button { color: inherit; }
+button { color: inherit; touch-action: manipulation; }
+button:disabled { opacity: 0.5; cursor: wait; }
 button:focus-visible, input:focus-visible { outline: 3px solid rgba(217, 255, 85, 0.55); outline-offset: 2px; }
 
 [hidden] { display: none !important; }
 
-.app-shell, #map { position: fixed; inset: 0; }
+.app-shell, #map { position: fixed; inset: 0; height: 100%; height: 100dvh; }
 
 #map { z-index: 0; background: #dce3df; }
 #map.placing { cursor: crosshair; }
@@ -63,9 +64,31 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(217, 255, 85
 
 .brand, .topbar-actions { display: flex; align-items: center; }
 .brand { gap: 10px; min-width: 0; }
-.brand strong { display: block; font-size: 15px; letter-spacing: -0.01em; }
+.admin-trigger {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: default;
+}
+.admin-trigger:focus-visible { border-radius: 12px; }
+.brand strong { display: block; font-size: 16px; letter-spacing: -0.01em; }
 .brand small { display: block; margin-top: 1px; color: var(--muted); font-size: 11px; }
 .topbar-actions { gap: 8px; }
+
+.admin-badge {
+  padding: 5px 8px;
+  border: 1px solid rgba(217, 255, 85, 0.28);
+  border-radius: 999px;
+  background: rgba(217, 255, 85, 0.12);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 
 .brand-mark {
   display: grid;
@@ -77,6 +100,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(217, 255, 85
 }
 .brand-mark i { width: 7px; height: 7px; border-radius: 50%; background: #27302d; }
 .brand-mark i:first-child { background: var(--red); box-shadow: 0 0 7px rgba(255, 75, 75, 0.7); }
+.brand-mark i:nth-child(2) { background: var(--amber); }
+.brand-mark i:last-child { background: var(--green); }
 
 .connection-status {
   display: inline-flex;
@@ -91,8 +116,9 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(217, 255, 85
 
 .icon-button {
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
   padding: 9px;
   place-items: center;
   border: 1px solid var(--line);
@@ -108,7 +134,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(217, 255, 85
 .placement-banner {
   position: fixed;
   z-index: 810;
-  top: calc(85px + env(safe-area-inset-top));
+  top: calc(157px + env(safe-area-inset-top));
   left: 50%;
   display: flex;
   align-items: center;
@@ -185,7 +211,6 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(217, 255, 85
 .signal-case { display: grid; gap: 3px; padding: 5px; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 11px; background: #090b0b; }
 .signal-lamp { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.08); background: #242b29; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8); transition: background 160ms ease, box-shadow 160ms ease; }
 .traffic-marker.phase-red .signal-lamp.red { background: var(--red); box-shadow: 0 0 11px 3px rgba(255, 75, 75, 0.76), inset 0 -2px 4px rgba(100, 0, 0, 0.3); }
-.traffic-marker.phase-amber .signal-lamp.amber { background: var(--amber); box-shadow: 0 0 11px 3px rgba(255, 196, 61, 0.78), inset 0 -2px 4px rgba(100, 55, 0, 0.25); }
 .traffic-marker.phase-green .signal-lamp.green { background: var(--green); box-shadow: 0 0 11px 3px rgba(37, 226, 120, 0.7), inset 0 -2px 4px rgba(0, 90, 30, 0.25); }
 .marker-pin { width: 2px; height: 8px; background: #111; }
 .marker-countdown { position: absolute; top: -7px; right: -7px; min-width: 22px; padding: 3px 5px; border-radius: 8px; background: white; color: #111; box-shadow: 0 3px 9px rgba(0, 0, 0, 0.25); font-size: 10px; font-weight: 900; line-height: 1; text-align: center; }
@@ -212,7 +237,6 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(217, 255, 85
 .detail-heading h2 { margin: 7px 0 13px; font-size: 21px; letter-spacing: -0.025em; }
 .phase-chip { display: inline-flex; align-items: center; gap: 6px; color: var(--green); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
 .phase-chip i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 9px currentColor; }
-.phase-chip.amber { color: var(--amber); }
 .phase-chip.red { color: var(--red); }
 .countdown-card { position: relative; overflow: hidden; padding: 13px 15px 16px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255, 255, 255, 0.045); }
 .countdown-card > span { color: var(--muted); font-size: 12px; }
@@ -220,12 +244,12 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(217, 255, 85
 .countdown-card strong small { color: var(--muted); font-size: 12px; }
 .progress-track { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255, 255, 255, 0.08); }
 .progress-track span { display: block; width: 100%; height: 100%; background: var(--accent); transform-origin: left; transition: transform 220ms linear; }
-.duration-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 11px 0; }
+.duration-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 11px 0; }
 .duration-list div { padding: 9px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.035); }
 .duration-list dt { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 10px; }
 .duration-list dd { margin: 4px 0 0; font-size: 13px; font-weight: 750; }
 .dot { width: 6px; height: 6px; border-radius: 50%; }
-.dot.green { background: var(--green); }.dot.amber { background: var(--amber); }.dot.red { background: var(--red); }
+.dot.green { background: var(--green); }.dot.red { background: var(--red); }
 .sheet-actions { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; }
 
 .app-dialog {
@@ -259,16 +283,22 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(217, 255, 85
 }
 fieldset { margin: 20px 0 0; padding: 0; border: 0; }
 fieldset > p { margin: 5px 0 12px; color: var(--muted); font-size: 12px; }
-.timing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.timing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .timing-field { display: grid; gap: 8px; padding: 11px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255, 255, 255, 0.035); }
 .timing-field > span:first-child { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; }
 .timing-field i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-.timing-field.green i { color: var(--green); }.timing-field.amber i { color: var(--amber); }.timing-field.red i { color: var(--red); }
+.timing-field.green i { color: var(--green); }.timing-field.red i { color: var(--red); }
 .number-input { display: flex; align-items: baseline; gap: 3px; }
-.number-input input { min-width: 0; width: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: white; font-size: 23px; font-weight: 800; }
+.number-input input { min-width: 0; width: 100%; min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: white; font-size: 23px; font-weight: 800; }
 .number-input b { color: var(--muted); font-size: 11px; }
 .form-error { margin: 13px 0 0; padding: 10px 12px; border-radius: 10px; background: rgba(255, 75, 75, 0.1); color: #ff9292; font-size: 12px; }
 .app-dialog footer { display: grid; grid-template-columns: auto 1fr; gap: 9px; margin-top: 20px; }
+
+.admin-dialog .field + .field { margin-top: 13px; }
+.admin-copy { margin: -7px 0 17px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.admin-dialog footer { grid-template-columns: auto 1fr; }
+.admin-dialog footer #admin-submit { min-width: 135px; }
+.admin-dialog footer #admin-signout:not([hidden]) { grid-column: 1 / -1; }
 
 .confirm-dialog { width: min(390px, calc(100% - 30px)); text-align: center; }
 .confirm-dialog form { padding: 25px; }
@@ -281,7 +311,7 @@ fieldset > p { margin: 5px 0 12px; color: var(--muted); font-size: 12px; }
 .toast {
   position: fixed;
   z-index: 1200;
-  top: calc(92px + env(safe-area-inset-top));
+  top: calc(155px + env(safe-area-inset-top));
   left: 50%;
   width: max-content;
   max-width: calc(100% - 30px);
@@ -304,10 +334,65 @@ fieldset > p { margin: 5px 0 12px; color: var(--muted); font-size: 12px; }
 }
 
 @media (max-width: 380px) {
-  .connection-status { display: none; }
-  .timing-grid { grid-template-columns: 1fr; }
-  .timing-field { grid-template-columns: 1fr auto; align-items: center; }
-  .number-input { width: 78px; }
+  .topbar { left: 8px; right: 8px; gap: 5px; padding: 8px; }
+  .topbar-actions { gap: 3px; }
+  .brand { gap: 6px; }
+  .brand small { font-size: 10px; }
+  .admin-badge { font-size: 9px; padding: 5px 6px; }
+  .app-dialog form { padding: 16px; }
+  .timing-field { padding: 10px; }
+}
+
+.map-status {
+  position: fixed; z-index: 790; left: 50%; top: calc(85px + env(safe-area-inset-top));
+  transform: translateX(-50%); display: flex; align-items: center; gap: 10px;
+  padding: 1px 10px 1px 13px; border-radius: 30px; background: #101416ed;
+  box-shadow: 0 4px 18px #0002; max-width: calc(100% - 22px); white-space: nowrap;
+}
+.map-status button { border: 0; background: transparent; color: var(--accent); min-height: 36px; font-size: 11px; cursor: pointer; }
+.map-status button:last-child { font-size: 22px; min-width: 32px; }
+.connection-status b { font-weight: 500; }
+.safety-notice { position: fixed; z-index: 780; top: calc(126px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 20px); margin: 0; padding: 5px 10px; border-radius: 8px; background: #fffef3ee; color: #3b453c; font-size: 11px; text-align: center; box-shadow: 0 2px 6px #0001; }
+.sequence-caption { color: var(--accent); font-size: 12px; margin: 10px 0; }
+.helper-text { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 10px 0; }
+.full-width { width: 100%; margin-top: 10px; }
+.cycle-row { padding: 0 0 15px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
+.cycle-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.cycle-heading strong { font-size: 13px; }
+.remove-cycle { min-height: 44px; padding: 8px 12px; border: 0; background: transparent; color: #ff9292; cursor: pointer; font-size: 12px; }
+.remove-cycle:disabled { visibility: hidden; }
+.detail-sheet { max-height: calc(100dvh - 170px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; }
+.detail-heading h2 { overflow-wrap: anywhere; }
+.detail-heading > div { min-width: 0; }
+.details-open .add-button { display: none; }
+.details-open .leaflet-control-zoom { visibility: hidden; }
+.admin-trigger { min-height: 44px; user-select: none; -webkit-user-select: none; }
+.admin-badge { cursor: pointer; min-height: 36px; }
+#admin-pin { text-align: center; letter-spacing: 0.35em; font-size: 26px; height: 60px; }
+.search-results { display: grid; gap: 7px; margin-top: 15px; max-height: 45dvh; overflow: auto; color: var(--muted); }
+.search-result { text-align: left; padding: 14px; background: #ffffff08; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; overflow-wrap: anywhere; color: var(--ink); }
+.search-result:hover { background: #d9ff5510; }
+#search-dialog h2 { font-size: 19px; }
+.info-copy { font-size: 14px; color: #c5d0cc; line-height: 1.65; }
+.info-copy h3 { font-size: 16px; color: var(--ink); margin-bottom: 5px; }
+.info-copy strong { color: var(--ink); }
+.app-dialog { overscroll-behavior: contain; }
+.leaflet-bar a { width: 40px !important; height: 40px !important; line-height: 40px !important; }
+
+@media (min-width: 700px) {
+  .map-status { left: 20px; transform: none; }
+  .safety-notice { left: 20px; transform: none; }
+  .details-open .add-button { display: flex; }
+  .detail-sheet { width: 410px; }
+}
+@media (max-height: 540px) and (min-width: 600px) {
+  .detail-sheet { left: auto; right: 12px; top: 12px; bottom: auto; width: min(340px, 46vw); max-height: calc(100dvh - 30px); }
+  .topbar { width: min(360px, 48vw); }
+  .empty-state { left: auto; right: 12px; top: 50%; transform: translateY(-50%); width: 300px; }
+  .details-open .add-button { display: none; }
+}
+@media (max-height: 700px) and (max-width: 699px) {
+  .detail-sheet { max-height: 56dvh; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,49 +1,45 @@
-export const PHASES = ["green", "amber", "red"];
+export const PHASES = ["green", "red"];
+export const PHASE_LABELS = { green: "Verde", red: "Rojo" };
+export const MAX_CYCLES = 24;
 
-export const PHASE_LABELS = {
-  green: "Verde",
-  amber: "Ámbar",
-  red: "Rojo",
-};
-
-export function calculatePhase(light, now = Date.now()) {
-  const durations = {
-    green: toPositiveSeconds(light.durations?.green),
-    amber: toPositiveSeconds(light.durations?.amber),
-    red: toPositiveSeconds(light.durations?.red),
-  };
-
-  const cycleMs = PHASES.reduce((total, phase) => total + durations[phase] * 1000, 0);
-  const startedAt = Number.isFinite(Number(light.startedAt)) ? Number(light.startedAt) : now;
-  const elapsedSinceStart = Math.max(0, now - startedAt);
-  const elapsedInCycleMs = elapsedSinceStart % cycleMs;
-
-  let phaseStartMs = 0;
-  for (const phase of PHASES) {
-    const phaseDurationMs = durations[phase] * 1000;
-    const phaseEndMs = phaseStartMs + phaseDurationMs;
-    if (elapsedInCycleMs < phaseEndMs) {
-      const elapsedInPhaseMs = elapsedInCycleMs - phaseStartMs;
-      return {
-        phase,
-        label: PHASE_LABELS[phase],
-        remainingSeconds: Math.max(1, Math.ceil((phaseEndMs - elapsedInCycleMs) / 1000)),
-        phaseDurationSeconds: durations[phase],
-        progress: Math.min(1, Math.max(0, elapsedInPhaseMs / phaseDurationMs)),
-        elapsedInCycleMs,
-        cycleDurationSeconds: cycleMs / 1000,
-      };
-    }
-    phaseStartMs = phaseEndMs;
+export function validateCycles(cycles) {
+  if (!Array.isArray(cycles) || cycles.length < 1 || cycles.length > MAX_CYCLES) {
+    throw new TypeError(`Añade entre 1 y ${MAX_CYCLES} vueltas.`);
   }
-
-  throw new Error("No se pudo calcular la fase del semáforo.");
+  return cycles.map((cycle) => {
+    const green = Number(cycle?.green);
+    const red = Number(cycle?.red);
+    if (![green, red].every((n) => Number.isInteger(n) && n >= 1 && n <= 3600)) {
+      throw new TypeError("Cada tiempo debe ser un entero entre 1 y 3600 segundos.");
+    }
+    return { green, red };
+  });
 }
 
-function toPositiveSeconds(value) {
-  const seconds = Number(value);
-  if (!Number.isFinite(seconds) || seconds <= 0) {
-    throw new TypeError("Las duraciones deben ser números positivos.");
+// Absolute instants preserve the sequence across sleep, reloads and days.
+export function calculatePhase(light, now = Date.now()) {
+  const cycles = validateCycles(light.cycles);
+  const startedAt = Number(light.startedAt);
+  if (!Number.isFinite(startedAt) || !Number.isFinite(now)) {
+    throw new TypeError("Fecha de inicio no válida.");
   }
-  return seconds;
+  const sequenceMs = cycles.reduce((sum, c) => sum + (c.green + c.red) * 1000, 0);
+  let position = Math.max(0, now - startedAt) % sequenceMs;
+  for (let cycleIndex = 0; cycleIndex < cycles.length; cycleIndex += 1) {
+    const cycle = cycles[cycleIndex];
+    for (const phase of PHASES) {
+      const duration = cycle[phase] * 1000;
+      if (position < duration) {
+        return {
+          phase, label: PHASE_LABELS[phase], cycleIndex, cycleCount: cycles.length,
+          remainingSeconds: Math.ceil((duration - position) / 1000),
+          phaseDurationSeconds: cycle[phase], progress: position / duration,
+          cycleDurationSeconds: cycle.green + cycle.red,
+          sequenceDurationSeconds: sequenceMs / 1000,
+        };
+      }
+      position -= duration;
+    }
+  }
+  throw new Error("No se pudo calcular la fase.");
 }

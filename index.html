@@ -7,38 +7,46 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Semáforos" />
-    <meta name="description" content="Crea y controla semáforos independientes sobre el mapa de tu ciudad." />
+    <meta name="description" content="Mapa público de semáforos peatonales de Valladolid. Tiempos orientativos, compartidos y configurados manualmente." />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="./icons/icon.svg" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
     <link rel="preconnect" href="https://tile.openstreetmap.org" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <link rel="stylesheet" href="./styles.css" />
-    <title>Semáforos</title>
+    <title>Semáforos Valladolid</title>
   </head>
   <body>
     <main class="app-shell">
       <div id="map" aria-label="Mapa de semáforos"></div>
 
       <header class="topbar">
-        <div class="brand" aria-label="Semáforos">
+        <button id="admin-trigger" class="brand admin-trigger" type="button" aria-label="Semáforos">
           <span class="brand-mark" aria-hidden="true">
             <i></i><i></i><i></i>
           </span>
           <span>
             <strong>Semáforos</strong>
-            <small id="light-count">0 instalados</small>
+            <small>Valladolid · <span id="light-count">cargando…</span></small>
           </span>
-        </div>
+        </button>
         <div class="topbar-actions">
-          <span id="connection-status" class="connection-status" aria-live="polite">
-            <span aria-hidden="true"></span> En línea
-          </span>
+          <button id="admin-badge" class="admin-badge" type="button" title="Salir del modo editor" hidden>Editor</button>
+          <button id="search-button" class="icon-button" type="button" aria-label="Buscar semáforo" title="Buscar semáforo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a7 7 0 1 0 4.9 12l5.4 5.4 1.4-1.4-5.4-5.4A7 7 0 0 0 10 3Zm0 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10Z"/></svg>
+          </button>
           <button id="locate-button" class="icon-button" type="button" aria-label="Centrar en mi ubicación" title="Mi ubicación">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.25A3.75 3.75 0 1 0 12 15.75 3.75 3.75 0 0 0 12 8.25Zm8.25 2.75h-1.58A6.76 6.76 0 0 0 13 5.33V3.75a1 1 0 1 0-2 0v1.58A6.76 6.76 0 0 0 5.33 11H3.75a1 1 0 1 0 0 2h1.58A6.76 6.76 0 0 0 11 18.67v1.58a1 1 0 1 0 2 0v-1.58A6.76 6.76 0 0 0 18.67 13h1.58a1 1 0 1 0 0-2ZM12 16.75A4.75 4.75 0 1 1 12 7.25a4.75 4.75 0 0 1 0 9.5Z"/></svg>
           </button>
         </div>
       </header>
+
+      <div class="map-status">
+        <span id="connection-status" class="connection-status" role="status"><span aria-hidden="true"></span><b>Conectando…</b></span>
+        <button id="refresh-button" type="button">Actualizar</button>
+        <button id="info-button" type="button" aria-label="Información e instalación">ⓘ</button>
+      </div>
+      <p class="safety-notice">Estimaciones. Mira siempre el semáforo real.</p>
 
       <section id="placement-banner" class="placement-banner" hidden>
         <span class="placement-pulse" aria-hidden="true"></span>
@@ -46,14 +54,14 @@
         <button id="cancel-placement" type="button">Cancelar</button>
       </section>
 
-      <section id="empty-state" class="empty-state">
-        <span class="empty-signal" aria-hidden="true"><i></i><i></i><i></i></span>
-        <h1>Tu mapa está preparado</h1>
-        <p>Añade tu primer semáforo y decide cuánto dura cada luz.</p>
-        <button id="empty-add-button" class="primary-button" type="button">Añadir semáforo</button>
+      <section id="empty-state" class="empty-state" hidden>
+        <span class="empty-signal" aria-hidden="true"><i></i><i></i></span>
+        <h1 id="empty-title">Cargando el mapa</h1>
+        <p id="empty-description">Conectando con los semáforos de Valladolid.</p>
+        <button id="empty-add-button" class="primary-button" type="button" hidden>Añadir semáforo</button>
       </section>
 
-      <button id="add-button" class="add-button" type="button" aria-label="Añadir semáforo">
+      <button id="add-button" class="add-button" type="button" aria-label="Añadir semáforo" hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H6a1 1 0 1 1 0-2h5V6a1 1 0 0 1 1-1Z"/></svg>
         <span>Añadir</span>
       </button>
@@ -70,26 +78,28 @@
           </button>
         </div>
         <div class="countdown-card">
-          <span>Cambio de luz en</span>
+          <span>Cambio estimado en</span>
           <strong><span id="detail-countdown">30</span><small> s</small></strong>
           <div class="progress-track"><span id="detail-progress"></span></div>
         </div>
         <dl class="duration-list">
           <div><dt><i class="dot green"></i>Verde</dt><dd id="detail-green">30 s</dd></div>
-          <div><dt><i class="dot amber"></i>Ámbar</dt><dd id="detail-amber">3 s</dd></div>
           <div><dt><i class="dot red"></i>Rojo</dt><dd id="detail-red">30 s</dd></div>
         </dl>
-        <div class="sheet-actions">
+        <p id="detail-sequence" class="sequence-caption"></p>
+        <p id="detail-updated" class="helper-text"></p>
+        <div id="editor-actions" class="sheet-actions" hidden>
           <button id="edit-button" class="secondary-button" type="button">Editar</button>
           <button id="move-button" class="secondary-button" type="button">Mover</button>
           <button id="delete-button" class="danger-button" type="button" aria-label="Eliminar semáforo">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4.5V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v.5h3a1 1 0 1 1 0 2h-.55l-.89 13.28A2.38 2.38 0 0 1 15.19 22H8.81a2.38 2.38 0 0 1-2.37-2.22L5.55 6.5H5a1 1 0 0 1 0-2h3Zm2 0h4V4h-4v.5Zm-2.45 2 .88 13.15c.01.2.18.35.38.35h6.38c.2 0 .37-.15.38-.35l.88-13.15h-8.9ZM10 9a1 1 0 0 1 1 1v6.5a1 1 0 1 1-2 0V10a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v6.5a1 1 0 1 1-2 0V10a1 1 0 0 1 1-1Z"/></svg>
           </button>
         </div>
+        <button id="sync-button" class="secondary-button full-width" type="button" hidden>Sincronizar con el semáforo real</button>
       </section>
     </main>
 
-    <dialog id="editor-dialog" class="app-dialog editor-dialog">
+    <dialog id="editor-dialog" class="app-dialog editor-dialog" aria-labelledby="editor-title">
       <form id="light-form" method="dialog" novalidate>
         <header>
           <div>
@@ -107,43 +117,103 @@
         </label>
 
         <fieldset>
-          <legend>Duración de las luces</legend>
-          <p>Introduce el tiempo de cada fase en segundos.</p>
-          <div class="timing-grid">
-            <label class="timing-field green">
-              <span><i></i>Verde</span>
-              <span class="number-input"><input id="green-time" name="green" type="number" inputmode="numeric" min="1" max="3600" step="1" required /><b>s</b></span>
-            </label>
-            <label class="timing-field amber">
-              <span><i></i>Ámbar</span>
-              <span class="number-input"><input id="amber-time" name="amber" type="number" inputmode="numeric" min="1" max="3600" step="1" required /><b>s</b></span>
-            </label>
-            <label class="timing-field red">
-              <span><i></i>Rojo</span>
-              <span class="number-input"><input id="red-time" name="red" type="number" inputmode="numeric" min="1" max="3600" step="1" required /><b>s</b></span>
-            </label>
-          </div>
+          <legend>Vueltas del semáforo</legend>
+          <p>Verde → rojo. Se ejecutan en orden y, tras la última, vuelve a la primera.</p>
+          <div id="cycle-rows"></div>
+          <button id="add-cycle" class="secondary-button full-width" type="button">＋ Añadir vuelta</button>
+          <p id="sequence-total" class="helper-text" aria-live="polite"></p>
         </fieldset>
+
+        <p class="helper-text">Al guardar comienza el verde de la primera vuelta. Después puedes sincronizarlo cuando el semáforo real cambie.</p>
 
         <p id="form-error" class="form-error" role="alert" hidden></p>
         <footer>
           <button id="cancel-editor" class="secondary-button" type="button">Cancelar</button>
-          <button class="primary-button" type="submit">Guardar semáforo</button>
+          <button id="save-button" class="primary-button" type="submit">Publicar semáforo</button>
         </footer>
       </form>
     </dialog>
 
-    <dialog id="delete-dialog" class="app-dialog confirm-dialog">
+    <dialog id="admin-dialog" class="app-dialog admin-dialog" aria-labelledby="admin-title">
+      <form id="admin-form" method="dialog" novalidate>
+        <header>
+          <div>
+            <span class="eyebrow">Acceso privado</span>
+            <h2 id="admin-title">Modo editor</h2>
+          </div>
+          <button id="close-admin" class="icon-button subtle" type="button" aria-label="Cerrar acceso privado">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6.7 5.3 5.3 5.29 5.3-5.3a1 1 0 1 1 1.4 1.42L13.42 12l5.3 5.3a1 1 0 0 1-1.42 1.4L12 13.42l-5.3 5.3a1 1 0 0 1-1.4-1.42l5.29-5.3-5.3-5.3A1 1 0 0 1 6.7 5.3Z"/></svg>
+          </button>
+        </header>
+
+        <p class="admin-copy">Desbloquea la edición para crear, mover, modificar o eliminar semáforos del mapa público.</p>
+
+        <label id="pin-field" class="field">
+          <span>PIN de administrador</span>
+          <input id="admin-pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4,12}" minlength="4" maxlength="12" autocomplete="off" required />
+        </label>
+        <p class="helper-text">El acceso dura hasta 8 horas y se cierra al recargar. Necesitas conexión para editar.</p>
+
+        <p id="admin-error" class="form-error" role="alert" hidden></p>
+        <footer>
+          <button id="admin-signout" class="secondary-button" type="button" hidden>Salir del modo editor</button>
+          <button id="cancel-admin" class="secondary-button" type="button">Cancelar</button>
+          <button id="admin-submit" class="primary-button" type="submit">Desbloquear</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog id="delete-dialog" class="app-dialog confirm-dialog" aria-labelledby="delete-title">
       <form method="dialog">
         <span class="warning-icon" aria-hidden="true">!</span>
-        <h2>¿Eliminar semáforo?</h2>
-        <p><strong id="delete-name"></strong> desaparecerá de este iPhone. Esta acción no se puede deshacer.</p>
+        <h2 id="delete-title">¿Eliminar semáforo?</h2>
+        <p><strong id="delete-name"></strong> desaparecerá del mapa. Esta acción no se puede deshacer.</p>
+        <p id="delete-error" class="form-error" role="alert" hidden></p>
         <footer>
           <button id="cancel-delete" class="secondary-button" type="button">Cancelar</button>
           <button id="confirm-delete" class="danger-text-button" type="button">Eliminar</button>
         </footer>
       </form>
     </dialog>
+
+    <dialog id="sync-dialog" class="app-dialog confirm-dialog" aria-labelledby="sync-title">
+      <form method="dialog">
+        <span class="eyebrow">Sincronización manual</span>
+        <h2 id="sync-title">Espera al verde real</h2>
+        <p>Pulsa «Ahora verde» cuando empiece el verde de la <strong>primera vuelta</strong>. Toda la secuencia se reiniciará para todos los visitantes.</p>
+        <p id="sync-error" class="form-error" role="alert" hidden></p>
+        <footer><button class="secondary-button" value="cancel">Cancelar</button><button id="confirm-sync" class="primary-button" type="button">Ahora verde</button></footer>
+      </form>
+    </dialog>
+
+    <dialog id="search-dialog" class="app-dialog" aria-labelledby="search-title">
+      <form method="dialog">
+        <header><h2 id="search-title">Semáforos de Valladolid</h2><button class="icon-button subtle" aria-label="Cerrar búsqueda">✕</button></header>
+        <label class="field"><span>Buscar por nombre</span><input id="search-input" type="search" autocomplete="off" placeholder="Calle, plaza, cruce…" /></label>
+        <div id="search-results" class="search-results"></div>
+        <button id="show-all" class="secondary-button full-width" type="button">Ver todos en el mapa</button>
+      </form>
+    </dialog>
+
+    <dialog id="info-dialog" class="app-dialog" aria-labelledby="info-title">
+      <form method="dialog">
+        <header><div><span class="eyebrow">Proyecto ciudadano · v4.0</span><h2 id="info-title">Valladolid, a pie</h2></div><button class="icon-button subtle" aria-label="Cerrar información">✕</button></header>
+        <div class="info-copy">
+          <p>Un mapa público de semáforos peatonales, configurados manualmente. Toca uno para consultar su secuencia.</p>
+          <p><strong>No está conectado al Ayuntamiento ni a los semáforos reales.</strong> Los tiempos pueden variar por horarios, pulsadores o tráfico. No uses la app para decidir si cruzar.</p>
+          <h3>Instalar como una app</h3>
+          <p><strong>iPhone / iPad:</strong> abre la web en Safari → Compartir → Añadir a pantalla de inicio.</p>
+          <p><strong>Android:</strong> menú de Chrome → Añadir a pantalla de inicio o Instalar aplicación. En ordenador, usa el icono de instalación del navegador si está disponible.</p>
+          <h3>Datos compartidos</h3>
+          <p>Con conexión, los cambios se consultan cada 15 segundos mientras la app está visible. Al volver a abrirla se recalcula la fase y se actualizan los datos.</p>
+          <p>Sin conexión se muestra la última copia descargada, marcada como desactualizada. El mapa puede no cargar. La ubicación se usa solo en tu dispositivo; no se guarda en nuestra base de datos.</p>
+          <p>Los mapas proceden de OpenStreetMap y los datos se alojan en Supabase. Esos servicios y GitHub reciben las solicitudes necesarias para mostrar la web.</p>
+        </div>
+        <button id="export-button" class="secondary-button full-width" type="button">Descargar copia de los semáforos</button>
+      </form>
+    </dialog>
+
+    <noscript><p class="empty-state">Activa JavaScript para consultar el mapa.</p></noscript>
 
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
